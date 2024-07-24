@@ -30,6 +30,8 @@ float SPEED = 130;  // 330 - 1023.
 int speed_Coeff = 3;
 float xMove=0;
 float yMove=0;
+float xPosition=0;
+float yPosition=0;
 
 ESP8266WebServer server(80);  // Create a webserver object that listens for HTTP request on port 80
 
@@ -222,6 +224,8 @@ void Forward() {
   if (!high_speed_mode && !repeat_command) { StartMotor(); }
   analogWrite(PWM_A, SPEED);
   analogWrite(PWM_B, SPEED);
+
+  Serial.println("Forward");
 }
 
 // function to move backward
@@ -231,6 +235,8 @@ void Backward() {
   if (!high_speed_mode && !repeat_command) { StartMotor(); }
   analogWrite(PWM_A, SPEED);
   analogWrite(PWM_B, SPEED);
+  
+  Serial.println("Backward");
 }
 
 // function to turn right
@@ -240,6 +246,8 @@ void TurnRight() {
   if (!high_speed_mode && !repeat_command) { StartMotor(); }
   analogWrite(PWM_A, SPEED);
   analogWrite(PWM_B, SPEED);
+
+  Serial.println("Right");
 }
 
 // function to turn left
@@ -278,6 +286,8 @@ void ForwardRight() {
   digitalWrite(DIR_B, LOW);
   if (!high_speed_mode && !repeat_command) { StartMotor(); }
 
+  
+
   analogWrite(PWM_A, SPEED / speed_Coeff);
   analogWrite(PWM_B, SPEED);
 }
@@ -298,6 +308,8 @@ void Stop() {
   digitalWrite(DIR_B, LOW);
   analogWrite(PWM_A, 0);
   analogWrite(PWM_B, 0);
+
+  Serial.println("Stop");
 }
 
 // function to beep a buzzer
@@ -320,35 +332,40 @@ void TurnLightOff() {
 }
 void joyStickMove(){
   xMove=abs(450-(server.arg("param1")).toFloat());
-    yMove=abs(450-(server.arg("param2")).toFloat());
+  yMove=abs(450-(server.arg("param2")).toFloat());
 
-    SPEED=((sqrt(pow(xMove,2)+pow(yMove,2)))/100)*1000;
+  SPEED=((sqrt(pow(xMove,2)+pow(yMove,2)))/100)*1000;
 
-  //   if (xMove < 400 && yMove > 500) {  // Forward
-  //   Forward();
-  // } else if (xMove < 400 && yMove < 400) {  // Backward
-  //   Backward();
-  // } else if (xMove < 400 && yMove >= 400 && yMove <= 500) {  // Left
-  //   TurnLeft();
-  // } else if (xMove > 500 && yMove >= 400 && yMove <= 500) {  // Right
-  //   TurnRight();
-  // } else if (xMove < 400 && yMove > 400 && yMove < 500) {  // Forward-Left
-  //   ForwardLeft();
-  // } else if (xMove < 400 && yMove < 600 && yMove > 500) {  // Forward-Right
-  //   ForwardRight();
-  // } else if (xMove < 400 && yMove < 400 && yMove > 300) {  // Backward-Left
-  //   BackwardLeft();
-  // } else if (xMove < 400 && yMove > 300 && yMove < 400) {  // Backward-Right
-  //   BackwardRight();
-  // } else {
-  //   Stop();  // Stop if no valid movement detected
-  // }
+  Serial.println("Speed");
+  Serial.println(SPEED,4);
 
-    Serial.println(xMove,4);
-    Serial.println(yMove,4);
+  xPosition=server.arg("param1").toFloat();
+  yPosition=server.arg("param2").toFloat();
 
-    Serial.println("Speed");
-    Serial.println(SPEED,4);
+    if (xPosition < 400 && yPosition > 500) {  // Forward
+    Forward();
+  } else if (xPosition < 400 && yPosition < 400) {  // Backward
+    Backward();
+  } else if (xPosition < 400 && yPosition >= 400 && yPosition <= 500) {  // Left
+    TurnLeft();
+  } else if (xPosition > 500 && yPosition >= 400 && yPosition <= 500) {  // Right
+    TurnRight();
+  } else if (xPosition < 400 && yPosition > 400 && yPosition < 500) {  // Forward-Left
+    ForwardLeft();
+  } else if (xPosition < 400 && yPosition < 600 && yPosition > 500) {  // Forward-Right
+    ForwardRight();
+  } else if (xPosition < 400 && yPosition < 400 && yPosition > 300) {  // Backward-Left
+    BackwardLeft();
+  } else if (xPosition < 400 && yPosition > 300 && yPosition < 400) {  // Backward-Right
+    BackwardRight();
+  } else {
+    Stop();  // Stop if no valid movement detected
+  }
+
+    // Serial.println(xMove,4);
+    // Serial.println(yMove,4);
+
+    
 }
 // void ChangeSpeed(String command)
 // {
