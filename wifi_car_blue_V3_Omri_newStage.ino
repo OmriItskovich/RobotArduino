@@ -324,11 +324,31 @@ void joyStickMove(){
 
     SPEED=((sqrt(pow(xMove,2)+pow(yMove,2)))/100)*1000;
 
+  //   if (xMove < 400 && yMove > 500) {  // Forward
+  //   Forward();
+  // } else if (xMove < 400 && yMove < 400) {  // Backward
+  //   Backward();
+  // } else if (xMove < 400 && yMove >= 400 && yMove <= 500) {  // Left
+  //   TurnLeft();
+  // } else if (xMove > 500 && yMove >= 400 && yMove <= 500) {  // Right
+  //   TurnRight();
+  // } else if (xMove < 400 && yMove > 400 && yMove < 500) {  // Forward-Left
+  //   ForwardLeft();
+  // } else if (xMove < 400 && yMove < 600 && yMove > 500) {  // Forward-Right
+  //   ForwardRight();
+  // } else if (xMove < 400 && yMove < 400 && yMove > 300) {  // Backward-Left
+  //   BackwardLeft();
+  // } else if (xMove < 400 && yMove > 300 && yMove < 400) {  // Backward-Right
+  //   BackwardRight();
+  // } else {
+  //   Stop();  // Stop if no valid movement detected
+  // }
+
     Serial.println(xMove,4);
     Serial.println(yMove,4);
 
     Serial.println("Speed");
-    Serial.print(SPEED,4);
+    Serial.println(SPEED,4);
 }
 // void ChangeSpeed(String command)
 // {
