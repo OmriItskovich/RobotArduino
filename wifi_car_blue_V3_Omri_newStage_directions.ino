@@ -19,10 +19,6 @@ int PWM_B = 4;
 int DIR_A = 0;
 int DIR_B = 2;
 
-// const int buzPin = D5;      // set digital pin D5 as buzzer pin (use active buzzer)
-// const int ledPin = D8;      // set digital pin D8 as LED pin (use super bright LED)
-// const int wifiLedPin = D0;  // set digital pin D0 as indication, the LED turn on if NodeMCU connected to WiFi as STA mode
-
 String command;       // String to store app command state.
 String prev_command;  // String to store app command state.
 
@@ -33,6 +29,8 @@ int xMove=0;
 int yMove=0;
 int xPosition=0;
 int yPosition=0;
+int max_linear_speed=1000;
+int max_angular_speed=500;
 
 ESP8266WebServer server(80);  // Create a webserver object that listens for HTTP request on port 80
 
@@ -51,22 +49,12 @@ void setup() {
 
   myservo.attach(2, 600, 2000);  // attaches the servo on GIO2 to the servo object
 
-  // pinMode(buzPin, OUTPUT);      // sets the buzzer pin as an Output
-  // pinMode(ledPin, OUTPUT);      // sets the LED pin as an Output
-  // pinMode(wifiLedPin, OUTPUT);  // sets the Wifi LED pin as an Output
-  // digitalWrite(buzPin, LOW);
-  // digitalWrite(ledPin, LOW);
-  // digitalWrite(wifiLedPin, HIGH);
-
-  // Set all the motor control pins to outputs
   pinMode(PWM_A, OUTPUT);
   pinMode(PWM_B, OUTPUT);
   pinMode(DIR_A, OUTPUT);
   pinMode(DIR_B, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  //pinMode(SPEAKER_BUILTIN, OUTPUT);
-
-  // Turn off motors - Initial state
+  
   digitalWrite(DIR_A, LOW);
   digitalWrite(DIR_B, LOW);
   analogWrite(PWM_A, 0);
@@ -78,53 +66,15 @@ void setup() {
   myservo.write(100);
   delay(500);
   myservo.write(90);
-  // set NodeMCU Wifi hostname based on chip mac address
-  // String chip_id = String(ESP.getChipId(), HEX);
-  // int i = chip_id.length() - 4;
-  // chip_id = chip_id.substring(i);
-  // chip_id = "wificar-" + chip_id;
-  // String hostname(chip_id);
 
-  // Serial.println();
-  // Serial.println("Hostname: " + hostname);
-
-  // // first, set NodeMCU as STA mode to connect with a Wifi network
-  // WiFi.mode(WIFI_STA);
-  // WiFi.begin(sta_ssid.c_str(), sta_password.c_str());
-  // Serial.println("");
-  // Serial.print("Connecting to: ");
-  // Serial.println(sta_ssid);
-  // Serial.print("Password: ");
-  // Serial.println(sta_password);
-
-  // // try to connect with Wifi network about 10 seconds
-  // unsigned long currentMillis = millis();
-  // previousMillis = currentMillis;
-  // while (WiFi.status() != WL_CONNECTED && currentMillis - previousMillis <= 10000) {
-  //   delay(500);
-  //   Serial.print(".");
-  //   currentMillis = millis();
-  // }
-
-  // if failed to connect with Wifi network set NodeMCU as AP mode
-  // if (WiFi.status() == WL_CONNECTED) {
-  //   Serial.println("");
-  //   Serial.println("*WiFi-STA-Mode*");
-  //   Serial.print("IP: ");
-  //   Serial.println(WiFi.localIP());
-  //   // digitalWrite(wifiLedPin, LOW);    // Wifi LED on when connected to Wifi as STA mode
-  //   delay(3000);
-  // } else {
   WiFi.mode(WIFI_AP);
-  // WiFi.softAP(hostname.c_str());
+  
   WiFi.softAPConfig(ip, ip, netmask);
 
   WiFi.softAP(ssid, password);
 
   IPAddress myIP = WiFi.softAPIP();
-  // Serial.println("");
-  // Serial.println("WiFi failed connected to " + sta_ssid);
-  // Serial.println("");
+  
   Serial.println("*WiFi-AP-Mode*");
   Serial.print("AP IP address: ");
   Serial.println(myIP);
@@ -148,7 +98,7 @@ void loop() {
     command = server.arg("State");
   else {
 
-    command=server.arg("param1")+server.arg("param2")+"";
+    command=server.arg("param1")+server.arg("param2")+""; //needs cahnges
 
     //String param1Value = server.arg("param1");
     //String param2Value = server.arg("param2");
@@ -188,10 +138,6 @@ void loop() {
   else if (command == "9") SPEED = command.toInt() * 100;
   else if (command == "10") SPEED = command.toInt() * 100;
   else if (command == "q") myservo.write(170);
-  // else {
-  //   handleNotFound();
-  //   Serial.println("ERROR no such command");
-  // }
 }
 
 // function prototypes for HTTP handlers
@@ -209,7 +155,7 @@ void HTTP_handleRoot(void) {
 }
 
 void handleNotFound() {
-  server.send(404, "text/plain", "404: Not found");  // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
+  server.send(404, "text/plain", "404: Not found"); 
 }
 
 void StartMotor() {
@@ -316,7 +262,7 @@ void Stop() {
 // function to beep a buzzer
 void BeepHorn() {
   Serial.println("horn");
-  //tone(speakerPin, 1000, 1000);
+
 }
 
 // function to turn on LED
@@ -332,13 +278,9 @@ void TurnLightOff() {
   digitalWrite(LED_BUILTIN, HIGH);
 }
 void joyStickMove(){
-  // xMove=(server.arg("param1")).toFloat()-450;
-  // yMove=(server.arg("param2")).toFloat()-450;
-
+  
   // SPEED=((sqrt(pow(xMove,2)+pow(yMove,2)))/100)*1000;
 
-  // Serial.println("Speed");
-  // Serial.println(SPEED,4);
 
   xPosition=server.arg("param1").toInt();
   yPosition=server.arg("param2").toInt();
@@ -346,29 +288,26 @@ void joyStickMove(){
   xMove=xPosition-450;
   yMove=450-yPosition;
 
+  calculate_motor_speeds(xMove,yMove);
+
   Serial.print("X_move,");
   Serial.print(xMove);
   Serial.print(",Y_Move,");
   Serial.print(yMove);
 
 
-  if(xMove==-100)
-    motor_dir(false,true);
-  else if(xMove==100)
-    motor_dir(true,false);
-  else if(xMove>0&&yMove>0) //right forawrd v
-    motor_dir(true,true);
-  else if(xMove>0&&yMove<0) //right backwards
-    motor_dir(false,false);
-  else if(xMove<0&&yMove>0) //left forward
-    motor_dir(true,true);
-  else if(xMove<0&&yMove<0) //left backwards
-    motor_dir(false,false);
-  
-    
-
- 
-
+  // if(xMove==-100)
+  //   motor_dir(false,true);
+  // else if(xMove==100)
+  //   motor_dir(true,false);
+  // else if(xMove>0&&yMove>0) //right forawrd v
+  //   motor_dir(true,true);
+  // else if(xMove>0&&yMove<0) //right backwards
+  //   motor_dir(false,false);
+  // else if(xMove<0&&yMove>0) //left forward
+  //   motor_dir(true,true);
+  // else if(xMove<0&&yMove<0) //left backwards
+  //   motor_dir(false,false);
   
 
   //   if (xPosition < 400 && yPosition > 500) {  // Forward
@@ -412,4 +351,23 @@ void motor_dir(bool bIsForward,bool aIsForward) //b is the left motor, a is righ
     digitalWrite(DIR_A, HIGH);
   else
     digitalWrite(DIR_A, LOW);
+}
+void calculate_motor_speeds(int xMove, int yMove){
+
+  int v=(yMove/100)*max_linear_speed;
+  int omega = (xMove/100) * max_angular_speed;
+
+  Serial.println("v");
+  Serial.println(v);
+  Serial.println("omega");
+  Serial.println(omega);
+
+  analogWrite(PWM_A, v-omega); //right
+  analogWrite(PWM_B, v+omega); //left
+
+  Serial.println("Right Speed");
+  Serial.println(v-omega);
+  Serial.println("Left Speed");
+  Serial.println(v+omega);
+
 }
