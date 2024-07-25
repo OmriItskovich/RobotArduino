@@ -1,0 +1,28 @@
+def calculate_motor_speeds(x, y, max_linear_speed, max_angular_speed):
+    # Calculate linear velocity v and angular velocity omega
+    v = y * max_linear_speed
+    omega = x * max_angular_speed
+    
+    # Calculate left and right wheel speeds
+    left_speed = v + (omega)
+    right_speed = v - (omega)
+    
+    return left_speed, right_speed
+
+# Example usage:
+if __name__ == "__main__":
+    # Example joystick input values (adjust as needed)
+    joystick_x = 0.707  # Range from -1 (left) to +1 (right)
+    joystick_y = 0.707   # Range from -1 (backward) to +1 (forward)
+    
+    # Maximum speeds (adjust according to your robot's capabilities)
+    max_linear_speed = 0.5  #Example: 1.0 meters per second
+    max_angular_speed = 0.5 #Example: 2.0 radians per second
+        
+    # Calculate motor speeds
+    left_speed, right_speed = calculate_motor_speeds(joystick_x, joystick_y, max_linear_speed, max_angular_speed)
+    
+    # Print the results
+    print(f"Joystick input: (x={joystick_x}, y={joystick_y})")
+    print(f"Left motor speed: {left_speed}")
+    print(f"Right motor speed: {right_speed}")
