@@ -351,14 +351,21 @@ void joyStickMove(){
   Serial.print(",Y_Move,");
   Serial.print(yMove);
 
-  if(xMove>0&&yMove>0) //right forawrd v
+
+  if(xMove==-100)
+    motor_dir(false,true);
+  else if(xMove==100)
+    motor_dir(true,false);
+  else if(xMove>0&&yMove>0) //right forawrd v
     motor_dir(true,true);
   else if(xMove>0&&yMove<0) //right backwards
-    motor_dir(true,false);
+    motor_dir(false,false);
   else if(xMove<0&&yMove>0) //left forward
     motor_dir(true,true);
   else if(xMove<0&&yMove<0) //left backwards
     motor_dir(false,false);
+  
+    
 
  
 
