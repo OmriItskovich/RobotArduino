@@ -262,6 +262,8 @@ void Stop() {
 // function to beep a buzzer
 void BeepHorn() {
   Serial.println("horn");
+  Forward();
+  SPEED=20.0;
 
 }
 
